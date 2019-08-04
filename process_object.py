@@ -1,6 +1,7 @@
 import cv2
 import time
 import sys
+import os
 
 this = sys.modules[__name__]
 this.out = None
@@ -9,7 +10,10 @@ this.timeout = None
 def process_object(obj, image):
     label = obj.class_id
     confidence = obj.confidence
+
     # print(cv2.__version__)
+    # print(os.uname(), os.uname()[4])
+
 
     if confidence > 0.5:
         if label == 15:

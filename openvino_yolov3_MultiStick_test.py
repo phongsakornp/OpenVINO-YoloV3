@@ -1,5 +1,6 @@
 import sys, os, cv2, time, heapq, argparse
 import numpy as np, math
+
 try:
     from armv7l.openvino.inference_engine import IENetwork, IEPlugin
 except:
@@ -7,6 +8,9 @@ except:
 import multiprocessing as mp
 from time import sleep
 import threading
+
+from process_object import process_object
+
 
 yolo_scale_13 = 13
 yolo_scale_26 = 26
@@ -143,22 +147,22 @@ def camThread(LABELS, results, frameBuffer, camera_width, camera_height, vidfps)
     global cam
     global window_name
 
-    #cam = cv2.VideoCapture(0)
-    #if cam.isOpened() != True:
-    #    print("USB Camera Open Error!!!")
-    #    sys.exit(0)
-    #cam.set(cv2.CAP_PROP_FPS, vidfps)
-    #cam.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
-    #cam.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
-    #window_name = "USB Camera"
-    #wait_key_time = 1
+    cam = cv2.VideoCapture(0)
+    if cam.isOpened() != True:
+       print("USB Camera Open Error!!!")
+       sys.exit(0)
+    cam.set(cv2.CAP_PROP_FPS, vidfps)
+    cam.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
+    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
+    window_name = "USB Camera"
+    wait_key_time = 1
 
-    cam = cv2.VideoCapture("data/input/testvideo4.mp4")
-    camera_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
-    camera_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    frame_count = int(cam.get(cv2.CAP_PROP_FRAME_COUNT))
-    window_name = "Movie File"
-    wait_key_time = int(1000 / vidfps)
+    # cam = cv2.VideoCapture("data/input/testvideo4.mp4")
+    # camera_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
+    # camera_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    # frame_count = int(cam.get(cv2.CAP_PROP_FRAME_COUNT))
+    # window_name = "Movie File"
+    # wait_key_time = int(1000 / vidfps)
 
     cv2.namedWindow(window_name, cv2.WINDOW_AUTOSIZE)
 
@@ -189,6 +193,9 @@ def camThread(LABELS, results, frameBuffer, camera_width, camera_height, vidfps)
                     label_text = LABELS[label] + " (" + "{:.1f}".format(confidence * 100) + "%)"
                     cv2.rectangle(color_image, (obj.xmin, obj.ymin), (obj.xmax, obj.ymax), box_color, box_thickness)
                     cv2.putText(color_image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, label_text_color, 1)
+
+                process_object(obj, image)
+
             lastresults = objects
         else:
             if not isinstance(lastresults, type(None)):
@@ -201,6 +208,9 @@ def camThread(LABELS, results, frameBuffer, camera_width, camera_height, vidfps)
                         label_text = LABELS[label] + " (" + "{:.1f}".format(confidence * 100) + "%)"
                         cv2.rectangle(color_image, (obj.xmin, obj.ymin), (obj.xmax, obj.ymax), box_color, box_thickness)
                         cv2.putText(color_image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, label_text_color, 1)
+
+                    process_object(obj, image)
+
 
         cv2.putText(color_image, fps,       (width-170,15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (38,0,255), 1, cv2.LINE_AA)
         cv2.putText(color_image, detectfps, (width-170,30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (38,0,255), 1, cv2.LINE_AA)
