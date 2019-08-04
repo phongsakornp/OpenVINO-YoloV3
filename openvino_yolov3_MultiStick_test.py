@@ -194,7 +194,7 @@ def camThread(LABELS, results, frameBuffer, camera_width, camera_height, vidfps)
                     cv2.rectangle(color_image, (obj.xmin, obj.ymin), (obj.xmax, obj.ymax), box_color, box_thickness)
                     cv2.putText(color_image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, label_text_color, 1)
 
-                process_object(obj, image=color_image, fps=fps)
+                process_object(obj, image=color_image, fps=3)
 
             lastresults = objects
         else:
@@ -209,7 +209,7 @@ def camThread(LABELS, results, frameBuffer, camera_width, camera_height, vidfps)
                         cv2.rectangle(color_image, (obj.xmin, obj.ymin), (obj.xmax, obj.ymax), box_color, box_thickness)
                         cv2.putText(color_image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, label_text_color, 1)
 
-                    process_object(obj, image=color_image, fps=fps)
+                    process_object(obj, image=color_image, fps=3)
 
 
         cv2.putText(color_image, fps,       (width-170,15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (38,0,255), 1, cv2.LINE_AA)
