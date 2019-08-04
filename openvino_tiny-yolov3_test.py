@@ -179,6 +179,7 @@ def main_IE_infer():
     plugin = IEPlugin(device=args.device)
     if "CPU" in args.device:
         plugin.add_cpu_extension("lib/libcpu_extension.so")
+
     net = IENetwork(model=model_xml, weights=model_bin)
     input_blob = next(iter(net.inputs))
     exec_net = plugin.load(network=net)
@@ -219,7 +220,7 @@ def main_IE_infer():
                     if objects[i].confidence < objects[j].confidence:
                         objects[i], objects[j] = objects[j], objects[i]
                     objects[j].confidence = 0.0
-        
+
         # Drawing boxes
         for obj in objects:
             if obj.confidence < 0.2:
@@ -251,4 +252,3 @@ def main_IE_infer():
 
 if __name__ == '__main__':
     sys.exit(main_IE_infer() or 0)
-

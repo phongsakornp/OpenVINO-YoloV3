@@ -6,6 +6,8 @@ try:
 except:
     from openvino.inference_engine import IENetwork, IEPlugin
 
+from process_object import process_object
+
 m_input_size = 416
 
 yolo_scale_13 = 13
@@ -178,7 +180,11 @@ def main_IE_infer():
 
     plugin = IEPlugin(device=args.device)
     if "CPU" in args.device:
-        plugin.add_cpu_extension("lib/libcpu_extension.so")
+        # For MacOS
+        plugin.add_cpu_extension("/opt/intel/openvino_2019.2.242/deployment_tools/inference_engine/lib/intel64/libcpu_extension.dylib")
+
+        # plugin.add_cpu_extension("lib/libcpu_extension.so")
+
     net = IENetwork(model=model_xml, weights=model_bin)
     input_blob = next(iter(net.inputs))
     exec_net = plugin.load(network=net)
@@ -214,7 +220,7 @@ def main_IE_infer():
             for j in range(i + 1, objlen):
                 if (IntersectionOverUnion(objects[i], objects[j]) >= 0.4):
                     objects[j].confidence = 0
-        
+
         # Drawing boxes
         for obj in objects:
             if obj.confidence < 0.2:
@@ -225,6 +231,8 @@ def main_IE_infer():
                 label_text = LABELS[label] + " (" + "{:.1f}".format(confidence * 100) + "%)"
                 cv2.rectangle(image, (obj.xmin, obj.ymin), (obj.xmax, obj.ymax), box_color, box_thickness)
                 cv2.putText(image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, label_text_color, 1)
+
+            process_object(obj, image)
 
         cv2.putText(image, fps, (camera_width - 170, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (38, 0, 255), 1, cv2.LINE_AA)
         cv2.imshow("Result", image)
@@ -246,4 +254,3 @@ def main_IE_infer():
 
 if __name__ == '__main__':
     sys.exit(main_IE_infer() or 0)
-
