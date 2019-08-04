@@ -7,7 +7,7 @@ this = sys.modules[__name__]
 this.out = None
 this.timeout = None
 
-def process_object(obj, image):
+def process_object(obj, image, fps=3):
     label = obj.class_id
     confidence = obj.confidence
 
@@ -23,7 +23,6 @@ def process_object(obj, image):
                 print('Create Writer')
                 # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                 fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-                fps = 3
                 this.out = cv2.VideoWriter('output.mp4', fourcc, fps, (320, 240), isColor=True)
                 this.timeout = time.time() + 5
 
