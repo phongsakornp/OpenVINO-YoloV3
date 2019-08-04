@@ -13,3 +13,4 @@ frozen_tiny_yolo_v3.labels
 *.pbtxt
 openvino_yolov3_test2.py
 *.ubuntu
+*.mp4
