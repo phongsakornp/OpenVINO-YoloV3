@@ -3,6 +3,7 @@ import time
 import sys
 import os
 import datetime
+import pygame
 
 this = sys.modules[__name__]
 this.out = None
@@ -48,6 +49,7 @@ def process_object_2(obj, image):
 
             if not this.capturing:
                 this.capturing = True
+                play_sound()
                 save_image(image)
                 save_video()
                 this.capturing = False
@@ -58,6 +60,11 @@ def process_object_2(obj, image):
                 # fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
                 # this.out = cv2.VideoWriter('output.mp4', fourcc, fps, (320, 240), isColor=True)
                 # this.timeout = time.time() + 5
+def play_sound():
+    pygame.mixer.init()
+    pygame.mixer.music.load('sound/dog.mp3')
+    pygame.mixer.music.play()
+    print('Done: Play Sound')
 
 def save_image(image):
     date = datetime.datetime.now().strftime("%Y%m%d_%H-%M-%S")
