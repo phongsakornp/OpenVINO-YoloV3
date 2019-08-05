@@ -5,6 +5,7 @@ import os
 import datetime
 import pygame
 import asyncio
+from threading import Thread
 
 this = sys.modules[__name__]
 this.out = None
@@ -23,7 +24,21 @@ async def start_capturing_done_in(sec):
     this.capturing = True
     await sleep(sec)
     this.capturing = False
-    print("Done Capturing")
+    print("End Capturing")
+
+def start_caturing_loop(image):
+    # loop = asyncio.get_event_loop()
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    tasks = [
+            loop.create_task(start_capturing_done_in(10)),
+            loop.create_task(play_sound()),
+            loop.create_task(save_image(image))
+    ]
+
+    loop.run_until_complete(asyncio.wait(tasks))
 
 def process_object_2(obj, image):
     label = obj.class_id
@@ -39,16 +54,10 @@ def process_object_2(obj, image):
                 # Todo: Will solve it later, maybe using async or threads
                 # save_video()
 
-                loop = asyncio.get_event_loop()
-                tasks = [
-                        loop.create_task(start_capturing_done_in(10)),
-                        loop.create_task(play_sound()),
-                        loop.create_task(save_image(image))
-                ]
-                loop.run_until_complete(asyncio.wait(tasks))
-                # loop.close()
-                print("End Capturing")
+                this.capturing = True
 
+                t = Thread(target=start_caturing_loop, args=(image,))
+                t.start()
 
             # if this.out is None:
                 # print('Create Writer')
