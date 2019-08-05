@@ -4,6 +4,7 @@ import sys
 import os
 import datetime
 import pygame
+import asyncio
 
 this = sys.modules[__name__]
 this.out = None
@@ -14,30 +15,15 @@ this.capturing = False
 # print(cv2.__version__)
 # print(os.uname(), os.uname()[4])
 
-def process_object(obj, image, fps=3):
-    label = obj.class_id
-    confidence = obj.confidence
+async def sleep(sec):
+    await asyncio.sleep(sec)
 
-    if confidence > 0.5:
-        if label == 15:
-            print(label, confidence)
-
-            if this.out is None:
-                print('Create Writer')
-                # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-                this.out = cv2.VideoWriter('output.mp4', fourcc, fps, (320, 240), isColor=True)
-                this.timeout = time.time() + 5
-
-    if this.out is not None:
-        if time.time() > timeout:
-            print('Done')
-            this.out.release()
-            this.out = None
-            this.timeout = None
-        else:
-            print('Write Image')
-            this.out.write(image)
+async def start_capturing_done_in(sec):
+    print("Start Capturing..")
+    this.capturing = True
+    await sleep(sec)
+    this.capturing = False
+    print("Done Capturing")
 
 def process_object_2(obj, image):
     label = obj.class_id
@@ -48,11 +34,21 @@ def process_object_2(obj, image):
             print(label, confidence)
 
             if not this.capturing:
-                this.capturing = True
-                play_sound()
-                save_image(image)
-                save_video()
-                this.capturing = False
+                # PhongsakornP. 5 Aug 2019
+                # I had a problem with write video on rasberry pi, it was hang.
+                # Todo: Will solve it later, maybe using async or threads
+                # save_video()
+
+                loop = asyncio.get_event_loop()
+                tasks = [
+                        loop.create_task(start_capturing_done_in(10)),
+                        loop.create_task(play_sound()),
+                        loop.create_task(save_image(image))
+                ]
+                loop.run_until_complete(asyncio.wait(tasks))
+                # loop.close()
+                print("End Capturing")
+
 
             # if this.out is None:
                 # print('Create Writer')
@@ -60,13 +56,14 @@ def process_object_2(obj, image):
                 # fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
                 # this.out = cv2.VideoWriter('output.mp4', fourcc, fps, (320, 240), isColor=True)
                 # this.timeout = time.time() + 5
-def play_sound():
+
+async def play_sound():
     pygame.mixer.init()
     pygame.mixer.music.load('sound/dog.mp3')
     pygame.mixer.music.play()
     print('Done: Play Sound')
 
-def save_image(image):
+async def save_image(image):
     date = datetime.datetime.now().strftime("%Y%m%d_%H-%M-%S")
     cv2.imwrite(os.path.join(this.captured_folder, 'image_%s_.jpg' %date), image)
     print("Done: Save Image")
@@ -98,3 +95,28 @@ def save_video():
         this.out.release()
         this.out = None
         this.timeout = None
+
+def process_object(obj, image, fps=3):
+    label = obj.class_id
+    confidence = obj.confidence
+
+    if confidence > 0.5:
+        if label == 15:
+            print(label, confidence)
+
+            if this.out is None:
+                print('Create Writer')
+                # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
+                this.out = cv2.VideoWriter('output.mp4', fourcc, fps, (320, 240), isColor=True)
+                this.timeout = time.time() + 5
+
+    if this.out is not None:
+        if time.time() > timeout:
+            print('Done')
+            this.out.release()
+            this.out = None
+            this.timeout = None
+        else:
+            print('Write Image')
+            this.out.write(image)
