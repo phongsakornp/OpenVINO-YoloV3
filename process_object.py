@@ -38,10 +38,6 @@ this.s3_bucket_name = secret["s3"]["bucket_name"]
 # print(cv2.__version__)
 # print(os.uname(), os.uname()[4])
 
-# LINE
-# userId: Ub6d6b3173fd1c3539da659dd58321c72
-# this.line_bot_api.push_message('Ub6d6b3173fd1c3539da659dd58321c72', TextSendMessage(text="Hello World"))
-
 async def sleep(sec):
     await asyncio.sleep(sec)
 
