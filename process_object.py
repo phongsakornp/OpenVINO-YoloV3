@@ -6,15 +6,41 @@ import datetime
 import pygame
 import asyncio
 from threading import Thread
+import boto3
+from botocore.exceptions import ClientError
+from linebot import (LineBotApi)
+from linebot.models import (
+    TextSendMessage, ImageSendMessage
+)
+import yaml
+
+secret = None
+
+with open("secret.yaml", "r") as stream:
+    try:
+      secret = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print(exc)
 
 this = sys.modules[__name__]
 this.out = None
 this.timeout = None
 this.captured_folder = 'captured/'
 this.capturing = False
+this.line_bot_api = LineBotApi(secret["linebot"]["channel_access_token"])
+this.my_line_user_id = secret["linebot"]["my_user_id"]
+this.s3_client = boto3.client(
+        's3',
+        aws_access_key_id=secret["s3"]["aws_access_key_id"],
+        aws_secret_access_key=secret["s3"]["aws_secret_access_key"])
+this.s3_bucket_name = secret["s3"]["bucket_name"]
 
 # print(cv2.__version__)
 # print(os.uname(), os.uname()[4])
+
+# LINE
+# userId: Ub6d6b3173fd1c3539da659dd58321c72
+# this.line_bot_api.push_message('Ub6d6b3173fd1c3539da659dd58321c72', TextSendMessage(text="Hello World"))
 
 async def sleep(sec):
     await asyncio.sleep(sec)
@@ -35,7 +61,7 @@ def start_caturing_loop(image):
     tasks = [
             loop.create_task(start_capturing_done_in(10)),
             loop.create_task(play_sound()),
-            loop.create_task(save_image(image))
+            loop.create_task(save_image_and_notify(image))
     ]
 
     loop.run_until_complete(asyncio.wait(tasks))
@@ -66,16 +92,67 @@ def process_object_2(obj, image):
                 # this.out = cv2.VideoWriter('output.mp4', fourcc, fps, (320, 240), isColor=True)
                 # this.timeout = time.time() + 5
 
+async def save_image_and_notify(image):
+    image_file_name = await save_image(image)
+    image_url = await upload_image_s3(image_file_name, image_file_name)
+    await send_notify_message(image_url, image_url)
+
+async def upload_image_s3(image_file_name, object_name):
+    try:
+        response = this.s3_client.upload_file(image_file_name, this.s3_bucket_name, object_name)
+        presigned_response = await create_presigned_url(this.s3_bucket_name, object_name)
+
+        print("Done > Upload Image To S3")
+
+        return presigned_response;
+    except ClientError as e:
+        print(e)
+        return None
+
+async def create_presigned_url(bucket_name, object_name, expiration=3600):
+    """Generate a presigned URL to share an S3 object
+
+    :param bucket_name: string
+    :param object_name: string
+    :param expiration: Time in seconds for the presigned URL to remain valid
+    :return: Presigned URL as string. If error, returns None.
+    """
+
+    # Generate a presigned URL for the S3 object
+    try:
+        response = this.s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': bucket_name, 'Key': object_name},
+                ExpiresIn=expiration
+        )
+    except ClientError as e:
+        logging.error(e)
+        return None
+
+    # The response contains the presigned URL
+    return response
+
 async def play_sound():
     pygame.mixer.init()
     pygame.mixer.music.load('sound/dog.mp3')
     pygame.mixer.music.play()
-    print('Done: Play Sound')
+    print('Done > Play Sound')
 
 async def save_image(image):
     date = datetime.datetime.now().strftime("%Y%m%d_%H-%M-%S")
-    cv2.imwrite(os.path.join(this.captured_folder, 'image_%s_.jpg' %date), image)
-    print("Done: Save Image")
+    image_file_name = os.path.join(this.captured_folder, 'image_%s_.jpg' %date)
+    cv2.imwrite(image_file_name, image)
+
+    print("Done > Save Image")
+
+    return image_file_name
+
+async def send_notify_message(original_url, preview_url):
+    imageMessage = ImageSendMessage(original_content_url=original_url, preview_image_url=preview_url)
+    textMessage = TextSendMessage(text="Cat is in the zone!!")
+    this.line_bot_api.push_message('Ub6d6b3173fd1c3539da659dd58321c72', [textMessage, imageMessage])
+    print("Done > Send Notify Message")
+
 
 def save_video():
     camera_width = 640
@@ -105,6 +182,7 @@ def save_video():
         this.out = None
         this.timeout = None
 
+'''
 def process_object(obj, image, fps=3):
     label = obj.class_id
     confidence = obj.confidence
@@ -129,3 +207,4 @@ def process_object(obj, image, fps=3):
         else:
             print('Write Image')
             this.out.write(image)
+'''

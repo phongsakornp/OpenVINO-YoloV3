@@ -14,3 +14,4 @@ frozen_tiny_yolo_v3.labels
 openvino_yolov3_test2.py
 *.ubuntu
 captured/*
+secret.yaml
