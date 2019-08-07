@@ -48,7 +48,7 @@ async def start_capturing_done_in(sec):
     this.capturing = False
     print("End Capturing")
 
-def start_caturing_loop(image):
+def start_caturing_cat_loop(image):
     # loop = asyncio.get_event_loop()
 
     loop = asyncio.new_event_loop()
@@ -57,7 +57,20 @@ def start_caturing_loop(image):
     tasks = [
             loop.create_task(start_capturing_done_in(10)),
             loop.create_task(play_sound()),
-            loop.create_task(save_image_and_notify(image))
+            loop.create_task(save_image_and_notify(image, 'Cat detected!!!'))
+    ]
+
+    loop.run_until_complete(asyncio.wait(tasks))
+
+def start_caturing_person_loop(image):
+    # loop = asyncio.get_event_loop()
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    tasks = [
+            loop.create_task(start_capturing_done_in(30)),
+            loop.create_task(save_image_and_notify(image, 'Person detected!'))
     ]
 
     loop.run_until_complete(asyncio.wait(tasks))
@@ -78,7 +91,7 @@ def process_object_2(obj, image):
 
                 this.capturing = True
 
-                t = Thread(target=start_caturing_loop, args=(image,))
+                t = Thread(target=start_caturing_cat_loop, args=(image,))
                 t.start()
 
             # if this.out is None:
@@ -87,11 +100,19 @@ def process_object_2(obj, image):
                 # fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
                 # this.out = cv2.VideoWriter('output.mp4', fourcc, fps, (320, 240), isColor=True)
                 # this.timeout = time.time() + 5
+        elif label == 1:
+            print(label, confidence)
 
-async def save_image_and_notify(image):
+            if not this.capturing:
+                this.capturing = True
+                t = Thread(target=start_caturing_person_loop, args=(image,))
+                t.start()
+
+
+async def save_image_and_notify(image, message):
     image_file_name = await save_image(image)
     image_url = await upload_image_s3(image_file_name, image_file_name)
-    await send_notify_message(image_url, image_url)
+    await send_notify_message(image_url, image_url, message)
 
 async def upload_image_s3(image_file_name, object_name):
     try:
@@ -143,9 +164,9 @@ async def save_image(image):
 
     return image_file_name
 
-async def send_notify_message(original_url, preview_url):
+async def send_notify_message(original_url, preview_url, message):
     imageMessage = ImageSendMessage(original_content_url=original_url, preview_image_url=preview_url)
-    textMessage = TextSendMessage(text="Cat is in the zone!!")
+    textMessage = TextSendMessage(text=message)
     this.line_bot_api.push_message('Ub6d6b3173fd1c3539da659dd58321c72', [textMessage, imageMessage])
     print("Done > Send Notify Message")
 
