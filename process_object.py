@@ -100,7 +100,7 @@ def process_object_2(obj, image):
                 # fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
                 # this.out = cv2.VideoWriter('output.mp4', fourcc, fps, (320, 240), isColor=True)
                 # this.timeout = time.time() + 5
-        elif label == 1:
+        elif label == 0:
             print(label, confidence)
 
             if not this.capturing:
