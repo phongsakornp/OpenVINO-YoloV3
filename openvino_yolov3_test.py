@@ -234,7 +234,7 @@ def main_IE_infer():
 
             notify(obj, image)
 
-        cv2.putText(image, fps, (camera_width - 170, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (38, 0, 255), 1, cv2.LINE_AA)
+        cv2.putText(image, fps, (camera_width - 170, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (38, 0, 255), 1, cv2.LINE_AA)
         cv2.imshow("Result", image)
 
         if cv2.waitKey(1)&0xFF == ord('q'):

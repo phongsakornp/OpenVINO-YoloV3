@@ -192,7 +192,7 @@ def camThread(LABELS, results, frameBuffer, camera_width, camera_height, vidfps)
                 if confidence > 0.2:
                     label_text = LABELS[label] + " (" + "{:.1f}".format(confidence * 100) + "%)"
                     cv2.rectangle(color_image, (obj.xmin, obj.ymin), (obj.xmax, obj.ymax), box_color, box_thickness)
-                    cv2.putText(color_image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, label_text_color, 1)
+                    cv2.putText(color_image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.45, label_text_color, 1)
 
                 notify(obj, image=color_image)
 
@@ -207,13 +207,13 @@ def camThread(LABELS, results, frameBuffer, camera_width, camera_height, vidfps)
                     if confidence > 0.2:
                         label_text = LABELS[label] + " (" + "{:.1f}".format(confidence * 100) + "%)"
                         cv2.rectangle(color_image, (obj.xmin, obj.ymin), (obj.xmax, obj.ymax), box_color, box_thickness)
-                        cv2.putText(color_image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, label_text_color, 1)
+                        cv2.putText(color_image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.45, label_text_color, 1)
 
                     notify(obj, image=color_image)
 
 
-        cv2.putText(color_image, fps,       (width-170,15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (38,0,255), 1, cv2.LINE_AA)
-        cv2.putText(color_image, detectfps, (width-170,30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (38,0,255), 1, cv2.LINE_AA)
+        cv2.putText(color_image, fps,       (width-170,15), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (38,0,255), 1, cv2.LINE_AA)
+        cv2.putText(color_image, detectfps, (width-170,30), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (38,0,255), 1, cv2.LINE_AA)
         cv2.imshow(window_name, cv2.resize(color_image, (width, height)))
 
         if cv2.waitKey(wait_key_time)&0xFF == ord('q'):
@@ -222,8 +222,10 @@ def camThread(LABELS, results, frameBuffer, camera_width, camera_height, vidfps)
         ## Print FPS
         framecount += 1
         if framecount >= 15:
-            fps       = "(Playback) {:.1f} FPS".format(time1/15)
-            detectfps = "(Detection) {:.1f} FPS".format(detectframecount/time2)
+            # Playback
+            fps       = "P: {:.1f} FPS".format(time1/15)
+            # Detection
+            detectfps = "D: {:.1f} FPS".format(detectframecount/time2)
             framecount = 0
             detectframecount = 0
             time1 = 0
