@@ -212,8 +212,8 @@ def camThread(LABELS, results, frameBuffer, camera_width, camera_height, vidfps)
                     notify(obj, image=color_image)
 
 
-        cv2.putText(color_image, fps,       (width-170,15), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (38,0,255), 1, cv2.LINE_AA)
-        cv2.putText(color_image, detectfps, (width-170,30), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (38,0,255), 1, cv2.LINE_AA)
+        cv2.putText(color_image, fps,       (width-80,15), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (38,0,255), 1, cv2.LINE_AA)
+        cv2.putText(color_image, detectfps, (width-80,30), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (38,0,255), 1, cv2.LINE_AA)
         cv2.imshow(window_name, cv2.resize(color_image, (width, height)))
 
         if cv2.waitKey(wait_key_time)&0xFF == ord('q'):

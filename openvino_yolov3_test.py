@@ -234,13 +234,13 @@ def main_IE_infer():
 
             notify(obj, image)
 
-        cv2.putText(image, fps, (camera_width - 170, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (38, 0, 255), 1, cv2.LINE_AA)
+        cv2.putText(image, fps, (camera_width - 80, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (38, 0, 255), 1, cv2.LINE_AA)
         cv2.imshow("Result", image)
 
         if cv2.waitKey(1)&0xFF == ord('q'):
             break
         elapsedTime = time.time() - t1
-        fps = "(Playback) {:.1f} FPS".format(1/elapsedTime)
+        fps = "P: {:.1f} FPS".format(1/elapsedTime)
 
         ## frame skip, video file only
         #skip_frame = int((vidfps - int(1/elapsedTime)) / int(1/elapsedTime))
