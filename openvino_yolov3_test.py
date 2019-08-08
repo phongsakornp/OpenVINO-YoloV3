@@ -6,7 +6,7 @@ try:
 except:
     from openvino.inference_engine import IENetwork, IEPlugin
 
-from process_object import process_object_2
+from notify_object_detected import notify
 
 m_input_size = 416
 
@@ -232,7 +232,7 @@ def main_IE_infer():
                 cv2.rectangle(image, (obj.xmin, obj.ymin), (obj.xmax, obj.ymax), box_color, box_thickness)
                 cv2.putText(image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, label_text_color, 1)
 
-            process_object_2(obj, image)
+            notify(obj, image)
 
         cv2.putText(image, fps, (camera_width - 170, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (38, 0, 255), 1, cv2.LINE_AA)
         cv2.imshow("Result", image)

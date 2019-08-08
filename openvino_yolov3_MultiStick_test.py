@@ -9,7 +9,7 @@ import multiprocessing as mp
 from time import sleep
 import threading
 
-from process_object import process_object_2
+from notify_object_detected import notify
 
 
 yolo_scale_13 = 13
@@ -194,7 +194,7 @@ def camThread(LABELS, results, frameBuffer, camera_width, camera_height, vidfps)
                     cv2.rectangle(color_image, (obj.xmin, obj.ymin), (obj.xmax, obj.ymax), box_color, box_thickness)
                     cv2.putText(color_image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, label_text_color, 1)
 
-                process_object_2(obj, image=color_image)
+                notify(obj, image=color_image)
 
             lastresults = objects
         else:
@@ -209,7 +209,7 @@ def camThread(LABELS, results, frameBuffer, camera_width, camera_height, vidfps)
                         cv2.rectangle(color_image, (obj.xmin, obj.ymin), (obj.xmax, obj.ymax), box_color, box_thickness)
                         cv2.putText(color_image, label_text, (obj.xmin, obj.ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, label_text_color, 1)
 
-                    process_object_2(obj, image=color_image)
+                    notify(obj, image=color_image)
 
 
         cv2.putText(color_image, fps,       (width-170,15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (38,0,255), 1, cv2.LINE_AA)
@@ -367,7 +367,15 @@ def inferencer(results, frameBuffer, number_of_ncs, camera_width, camera_height,
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-numncs','--numberofncs',dest='number_of_ncs',type=int,default=1,help='Number of NCS. (Default=1)')
+    parser.add_argument(
+            '-numncs',
+            '--numberofncs',
+            dest='number_of_ncs',
+            type=int,
+            default=1,
+            help='Number of NCS. (Default=1)'
+    )
+
     args = parser.parse_args()
 
     number_of_ncs = args.number_of_ncs

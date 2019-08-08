@@ -1,4 +1,4 @@
-import sys, os, datetime, time, argparse
+import sys, os, datetime, time
 import cv2
 import pygame
 import asyncio
@@ -12,6 +12,7 @@ from linebot.models import (
 import yaml
 
 secret = None
+settings = None
 
 with open("secret.yaml", "r") as stream:
     try:
@@ -19,21 +20,27 @@ with open("secret.yaml", "r") as stream:
     except yaml.YAMLError as exc:
         print(exc)
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-        '-classes',
-        '--proceedobjectclasses',
-        dest='proceed_object_classes',
-        type=int,
-        default=15,
-        help='List of object class to be processed (Default=15)',
-        nargs='+'
-)
+with open("settings.yaml", 'r') as stream:
+    try:
+        settings = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print(exc)
 
-args = parser.parse_args()
+print("Settings", settings)
 
-proceed_object_classes = args.proceed_object_classes
-print('Proceed Object Classes', proceed_object_classes)
+# parser = argparse.ArgumentParser()
+# parser.add_argument(
+        # '-classes',
+        # '--proceedobjectclasses',
+        # dest='proceed_object_classes',
+        # type=int,
+        # default=15,
+        # help='List of object class to be processed (Default=15)',
+        # nargs='+'
+# )
+# args = parser.parse_args()
+# proceed_object_classes = args.proceed_object_classes
+# print('Proceed Object Classes', proceed_object_classes)
 
 this = sys.modules[__name__]
 this.out = None
@@ -47,7 +54,7 @@ this.s3_client = boto3.client(
         aws_access_key_id=secret["s3"]["aws_access_key_id"],
         aws_secret_access_key=secret["s3"]["aws_secret_access_key"])
 this.s3_bucket_name = secret["s3"]["bucket_name"]
-this.proceed_object_classes = proceed_object_classes
+this.notify_object_labels = settings["notify"]["labels"]
 
 # print(cv2.__version__)
 # print(os.uname(), os.uname()[4])
@@ -89,12 +96,12 @@ def start_caturing_person_loop(image):
 
     loop.run_until_complete(asyncio.wait(tasks))
 
-def process_object_2(obj, image):
+def notify(obj, image):
     label = obj.class_id
     confidence = obj.confidence
 
     if confidence > 0.5:
-        if label in proceed_object_classes:
+        if label in notify_object_labels:
             print(label, confidence)
 
             if label == 15:
