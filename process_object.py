@@ -1,8 +1,5 @@
+import sys, os, datetime, time, argparse
 import cv2
-import time
-import sys
-import os
-import datetime
 import pygame
 import asyncio
 from threading import Thread
@@ -22,6 +19,22 @@ with open("secret.yaml", "r") as stream:
     except yaml.YAMLError as exc:
         print(exc)
 
+parser = argparse.ArgumentParser()
+parser.add_argument(
+        '-classes',
+        '--proceedobjectclasses',
+        dest='proceed_object_classes',
+        type=int,
+        default=15,
+        help='List of object class to be processed (Default=15)',
+        nargs='+'
+)
+
+args = parser.parse_args()
+
+proceed_object_classes = args.proceed_object_classes
+print('Proceed Object Classes', proceed_object_classes)
+
 this = sys.modules[__name__]
 this.out = None
 this.timeout = None
@@ -34,6 +47,7 @@ this.s3_client = boto3.client(
         aws_access_key_id=secret["s3"]["aws_access_key_id"],
         aws_secret_access_key=secret["s3"]["aws_secret_access_key"])
 this.s3_bucket_name = secret["s3"]["bucket_name"]
+this.proceed_object_classes = proceed_object_classes
 
 # print(cv2.__version__)
 # print(os.uname(), os.uname()[4])
@@ -80,33 +94,33 @@ def process_object_2(obj, image):
     confidence = obj.confidence
 
     if confidence > 0.5:
-        if label == 15:
+        if label in proceed_object_classes:
             print(label, confidence)
 
-            if not this.capturing:
-                # PhongsakornP. 5 Aug 2019
-                # I had a problem with write video on rasberry pi, it was hang.
-                # Todo: Will solve it later, maybe using async or threads
-                # save_video()
+            if label == 15:
+                if not this.capturing:
+                    # PhongsakornP. 5 Aug 2019
+                    # I had a problem with write video on rasberry pi, it was hang.
+                    # Todo: Will solve it later, maybe using async or threads
+                    # save_video()
 
-                this.capturing = True
+                    this.capturing = True
 
-                t = Thread(target=start_caturing_cat_loop, args=(image,))
-                t.start()
+                    t = Thread(target=start_caturing_cat_loop, args=(image,))
+                    t.start()
 
-            # if this.out is None:
-                # print('Create Writer')
-                # # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                # fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-                # this.out = cv2.VideoWriter('output.mp4', fourcc, fps, (320, 240), isColor=True)
-                # this.timeout = time.time() + 5
-        elif label == 0:
-            print(label, confidence)
+                # if this.out is None:
+                    # print('Create Writer')
+                    # # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                    # fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
+                    # this.out = cv2.VideoWriter('output.mp4', fourcc, fps, (320, 240), isColor=True)
+                    # this.timeout = time.time() + 5
+            elif label == 0:
 
-            if not this.capturing:
-                this.capturing = True
-                t = Thread(target=start_caturing_person_loop, args=(image,))
-                t.start()
+                if not this.capturing:
+                    this.capturing = True
+                    t = Thread(target=start_caturing_person_loop, args=(image,))
+                    t.start()
 
 
 async def save_image_and_notify(image, message):
